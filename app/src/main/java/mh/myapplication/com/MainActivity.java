@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements Game.GameListener
         Display display = getWindowManager().getDefaultDisplay();
 
         //prepareResources
-        int[] resources = new int[20];
+        int[] resources = new int[21];
         int resID;
 
         for(int imgnum=0;imgnum<21;imgnum++) {

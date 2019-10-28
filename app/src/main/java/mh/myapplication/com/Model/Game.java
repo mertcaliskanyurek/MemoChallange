@@ -1,6 +1,5 @@
 package mh.myapplication.com.Model;
 
-import android.content.Context;
 import android.view.Display;
 import android.widget.GridLayout;
 
@@ -19,10 +18,11 @@ public class Game implements Table.CardClickListener{
     private int gameMode;
     private int cardsSize;
 
-    private Card openedCard = null;
-    private int knowedCards = 0;
+    private Card lastCard = null;
+    private int knowCards = 0;
 
     private int startTime;
+    private boolean secoundCard =false;
 
     public Game(int gameMode) {
         this.gameMode = gameMode;
@@ -31,8 +31,9 @@ public class Game implements Table.CardClickListener{
     public void initTable(GridLayout layout, Display display, int[] resources)
     {
         List<Integer> usedResources = new ArrayList<>();
-        List<Integer> usedRows = new ArrayList<>();
-        List<Integer> usedCols = new ArrayList<>();
+       // List<Table.TableIndex> usedIndexes = new ArrayList<>();
+        /*List<Integer> usedRows = new ArrayList<>();
+        List<Integer> usedCols = new ArrayList<>();*/
         switch (gameMode)
         {
             case GAME_MODE_EASY:
@@ -41,12 +42,12 @@ public class Game implements Table.CardClickListener{
                 break;
 
             case GAME_MODE_MEDIUM:
-                gameTable = new Table(layout,display,4,3);
+                gameTable = new Table(layout,display,3,4);
                 cardsSize = 6;
                 break;
 
             case GAME_MODE_HARD:
-                gameTable = new Table(layout,display,6,3);
+                gameTable = new Table(layout,display,3,6);
                 cardsSize = 9;
                 break;
 
@@ -54,41 +55,28 @@ public class Game implements Table.CardClickListener{
                     return;
         }
 
-        for(int i=0;i<cardsSize;i++)
+        for(int i=0;i<gameTable.getRowCount();i++)
         {
-            int rand;
-            int row;
-            int col;
+            for(int j=0;j<gameTable.getColCount()-1;j+=2) {
 
-            //decide image resource
-            do {
-                rand = (int) (Math.random() * resources.length);
-            }while (usedResources.contains(resources[rand]));
+                int rand;
 
-            Card card = new Card(layout.getContext(),resources[rand]);
-
-            //put card different two places on table
-            for(int j=0;j<2;j++) {
-                //decide card row
+                //decide image resource
                 do {
-                    rand = (int) (Math.random() * gameTable.getRowCount());
-                } while (usedRows.contains(rand));
+                    rand = (int) (Math.random() * resources.length);
+                } while (usedResources.contains(resources[rand]));
 
-                row = rand;
+                Card card = new Card(layout.getContext(), resources[rand]);
+                Card sameCard = new Card(layout.getContext(), resources[rand]);
 
-                do {
-                    rand = (int) (Math.random() * gameTable.getColCount());
-                } while (usedCols.contains(rand));
+                gameTable.addCard(card,i,j);
+                gameTable.addCard(sameCard,i,j+1);
 
-                col = rand;
-                gameTable.addCard(card,row,col);
-                usedRows.add(row);
-                usedCols.add(col);
+                usedResources.add(resources[rand]);
             }
-
-            usedResources.add(resources[rand]);
         }
 
+        shuffleCards();
         gameTable.setListener(this);
     }
 
@@ -97,29 +85,52 @@ public class Game implements Table.CardClickListener{
         startTime = (int) (System.currentTimeMillis());
     }
 
+    ///TODO shuffle cards on table
+    private void shuffleCards()
+    {
+
+    }
+
     public void setListener(GameListener listener) {
         this.listener = listener;
     }
 
     @Override
-    public void onCardClick(Card card) {
+    public void onCardClick(final Card card) {
         card.toggle();
-        if(openedCard == null)
-            openedCard = card;
+        if(!secoundCard) {
+            lastCard = card;
+            secoundCard = true;
+        }
         else
         {
-            if(card == openedCard) {
-                card.delete();
-                openedCard.delete();
-                knowedCards++;
+            if(card.compareTo(lastCard) == 0) {
+                new android.os.Handler().postDelayed(
+                        new Runnable() {
+                            public void run() {
+                                card.delete();
+                                lastCard.delete();
+                                knowCards++;
+                            }
+                        }, 1000);
             }
-            else
-                openedCard.toggle();
+            else {
+                new android.os.Handler().postDelayed(
+                        new Runnable() {
+                            public void run() {
+                                card.toggle();
+                                lastCard.toggle();
+                            }
+                        }, 1000);
+
+            }
+            secoundCard = false;
+
         }
 
         //check game is finished
         //calculate score depend on game mode and time
-        if(knowedCards == cardsSize && listener != null)
+        if(knowCards == cardsSize && listener != null)
         {
             int finishTime = (int) (System.currentTimeMillis());
             int score = (finishTime-startTime)*gameMode;

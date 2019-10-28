@@ -12,9 +12,12 @@ public class Card extends android.support.v7.widget.AppCompatImageView implement
     private boolean isOpened=false;
     private int imgResID;
 
+    //private Table.TableIndex tableIndex;
+
     public Card(Context context,int imgResID) {
         super(context);
         this.imgResID = imgResID;
+        this.setId((int)(imgResID+(Math.random()*1000)));
         this.setImageResource(CARD_BACK_RES_ID);
     }
 

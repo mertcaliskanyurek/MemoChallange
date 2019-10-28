@@ -29,7 +29,8 @@ public class Table implements View.OnClickListener {
         Point size = new Point();
         display.getSize(size);
         this.imageSize = (size.x/colmCount)-20;
-        cards = new ArrayList<>(rowCount*colmCount);
+        //this.imageSize = 100;
+        cards = new ArrayList<>();
     }
 
     public void addCard(Card card,int row,int col)
@@ -47,9 +48,7 @@ public class Table implements View.OnClickListener {
         card.setLayoutParams(parms);
         card.setOnClickListener(this);
 
-        int index = (row*col);
-        card.setId(index);
-        cards.add(index,card);
+        cards.add(card);
 
         layout.addView(card, parms);
     }
@@ -70,9 +69,39 @@ public class Table implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        int index = v.getId();
-        if(this.listener != null)
-            listener.onCardClick(cards.get(index));
+        int id = v.getId();
+        Card card=null;
+        //findClickedCard
+        for(Card c:cards)
+            if(c.getId()==id)
+                card = c;
+        if(this.listener != null && card!=null)
+            listener.onCardClick(card);
+    }
+
+    public static class TableIndex implements Comparable<TableIndex>{
+
+        private int row;
+        private int col;
+
+        public TableIndex(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        public int getRow() {
+            return row;
+        }
+
+        public int getCol() {
+            return col;
+        }
+
+
+        @Override
+        public int compareTo(TableIndex o) {
+            return (this.row-o.row)+(this.col-o.col);
+        }
     }
 
     interface CardClickListener {
